@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 
 const UserForm = () => {
   const [formData, setFormData] = useState({
@@ -7,6 +8,8 @@ const UserForm = () => {
     nas: ''
   });
   const [isEmployer, setIsEmployer] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({
@@ -14,14 +17,29 @@ const UserForm = () => {
       [name]: value
     });
   };
+
   const handleCheckboxChange = () => {
     setIsEmployer(!isEmployer);
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    axios.post('http://localhost:3000/api/v1/clients/register', formData)
+      .then(response => {
+        console.log('Registration successful:', response.data);
+      })
+      .catch(error => {
+        console.error('Registration error:', error.response.data);
+        setErrorMessage(error.response.data.message);
+      });
   };
 
   return (
     <div>
       <h2>User Registration</h2>
-      <form>
+      {errorMessage && <p>{errorMessage}</p>}
+      <form onSubmit={handleSubmit}>
         <div>
           <label>Email:</label>
           <input
@@ -52,13 +70,15 @@ const UserForm = () => {
             required
           />
         </div>
-        <input 
+        <div>
+          <input 
             type="checkbox" 
             id="employerCheckbox" 
             checked={isEmployer} 
             onChange={handleCheckboxChange} 
           />
           <label htmlFor="employerCheckbox">Employer</label>
+        </div>
         <button type="submit">Submit</button>
       </form>
     </div>

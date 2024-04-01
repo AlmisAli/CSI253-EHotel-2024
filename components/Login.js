@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 
-const LoginForm = () => {
+const Login = ({ onLogin }) => {
   const [formData, setFormData] = useState({
     email: '',
     name: '',
     nas: ''
   });
-  const [isEmployer, setIsEmployer] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({
@@ -14,29 +16,33 @@ const LoginForm = () => {
       [name]: value
     });
   };
-  const handleCheckboxChange = () => {
-    setIsEmployer(!isEmployer);
-  };
-  
 
-  const handleSubmit = (e) => {
+  const handleLogin = (e) => {
     e.preventDefault();
-    // Handle login logic here, e.g., send data to server for authentication
-    console.log(formData);
-    // Clear form fields after submission (optional)
-    setFormData({
-      email: '',
-      name: '',
-      nas: ''
-    });
-    setIsEmployer(false); // Reset the checkbox to unchecked state after submission
 
+    axios.post('http://localhost:3000/api/v1/EhotelClients/login-client', formData)
+      .then(response => {
+        console.log('Login successful:', response.data);
+
+        // Store token in localStorage
+        localStorage.setItem('token', response.data.token);
+
+        // Redirect or set token/session here
+        // For now, you can just redirect to a home page
+        window.location.href = '/'; // Redirect to home page
+        onLogin(); // Call onLogin function
+      })
+      .catch(error => {
+        console.error('Login error:', error.response.data);
+        setErrorMessage(error.response.data.message || 'An error occurred');
+      });
   };
 
   return (
     <div>
       <h2>User Login</h2>
-      <form onSubmit={handleSubmit}>
+      {errorMessage && <p>{errorMessage}</p>}
+      <form onSubmit={handleLogin}>
         <div>
           <label>Email:</label>
           <input
@@ -67,20 +73,10 @@ const LoginForm = () => {
             required
           />
         </div>
-        <div>
-          <input 
-            type="checkbox" 
-            id="employerCheckbox" 
-            checked={isEmployer} 
-            onChange={handleCheckboxChange} 
-          />
-          <label htmlFor="employerCheckbox">Employer</label>
-        </div>
         <button type="submit">Login</button>
       </form>
     </div>
   );
 };
 
-export default LoginForm;
-//l
+export default Login;
